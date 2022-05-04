@@ -23,12 +23,12 @@ class Puzzle
     }
 }
 
-class Board
+class sheet
 {
     public int pegCount;
     public int[] cells;
 
-    public Board(int emptyCell)
+    public sheet(int emptyCell)
     {
         cells = new int[15];
         pegCount = 14;
@@ -36,24 +36,24 @@ class Board
             cells[i] = i == emptyCell ? 0 : 1;
     }
 
-    public Board(int pegCount, int[] cells)
+    public sheet(int pegCount, int[] cells)
     {
         this.pegCount = pegCount;
         this.cells    = cells.clone();
     }
 
-    public Board Puzzle(Puzzle m)
+    public sheet Puzzle(Puzzle m)
     {
         if (cells[m.from] == 1 && 
             cells[m.over] == 1 && 
             cells[m.to]   == 0) 
         {
-            Board boardAfter = new Board(pegCount-1, cells.clone());
-            boardAfter.cells[m.from] = 0;
-            boardAfter.cells[m.over] = 0;
-            boardAfter.cells[m.to]   = 1;
+            sheet sheetAfter = new sheet(pegCount-1, cells.clone());
+            sheetAfter.cells[m.from] = 0;
+            sheetAfter.cells[m.over] = 0;
+            sheetAfter.cells[m.to]   = 1;
 
-            return boardAfter;
+            return sheetAfter;
         }
 
         return null;
@@ -62,19 +62,19 @@ class Board
 
 class StepIterator implements Iterator<Puzzle>
 {
-    private Puzzle[] Puzzles;
+    private Puzzle[] PegPuzzle;
     private Puzzle   reversed;
     private int    i;
 
-    public StepIterator(Puzzle[] Puzzles)
+    public StepIterator(Puzzle[] PegPuzzle)
     {
-        this.Puzzles = Puzzles;
+        this.PegPuzzle = PegPuzzle;
         this.i     = 0;
     }
 
     @Override
     public boolean hasNext() 
-    { return i < Puzzles.length || (i == Puzzles.length && reversed != null); }
+    { return i < PegPuzzle.length || (i == PegPuzzle.length && reversed != null); }
 
     @Override
     public Puzzle next() 
@@ -86,7 +86,7 @@ class StepIterator implements Iterator<Puzzle>
             return result;
         }
 
-        Puzzle m = Puzzles[i++];
+        Puzzle m = PegPuzzle[i++];
         reversed = m.reversed();
 
         return m;
@@ -95,7 +95,7 @@ class StepIterator implements Iterator<Puzzle>
 
 class StepList implements Iterable<Puzzle>
 {
-    public static final Puzzle[] Puzzles = 
+    public static final Puzzle[] PegPuzzle = 
     {
         new Puzzle(0, 1, 3),
         new Puzzle(0, 2, 5),
@@ -119,7 +119,7 @@ class StepList implements Iterable<Puzzle>
 
     @Override
     public StepIterator iterator()
-    { return new StepIterator(Puzzles); }
+    { return new StepIterator(PegPuzzle); }
 }
 
 public class Cracker
@@ -127,7 +127,7 @@ public class Cracker
     static StepList steps() 
     { return new StepList(); }
 
-    static ArrayList<LinkedList<Puzzle>> solve(Board b)
+    static ArrayList<LinkedList<Puzzle>> solve(sheet b)
     {
         ArrayList<LinkedList<Puzzle>> out = new ArrayList<LinkedList<Puzzle>>();
         solve(b, out, 0);
@@ -135,7 +135,7 @@ public class Cracker
         return out;
     }
 
-    static LinkedList<Puzzle> firstSolution(Board b)
+    static LinkedList<Puzzle> firstSolution(sheet b)
     {
         ArrayList<LinkedList<Puzzle>> out = new ArrayList<LinkedList<Puzzle>>();
         solve(b, out, 1);
@@ -146,7 +146,7 @@ public class Cracker
         return out.get(0);
     }
 
-    static void solve(Board b, ArrayList<LinkedList<Puzzle>> solutions, int count)
+    static void solve(sheet b, ArrayList<LinkedList<Puzzle>> solutions, int count)
     {
         if (b.pegCount == 1)
         {
@@ -156,11 +156,11 @@ public class Cracker
 
         for (Puzzle m : steps()) 
         {
-            Board boardAfter = b.Puzzle(m);
-            if (boardAfter == null) continue;
+            sheet sheetAfter = b.Puzzle(m);
+            if (sheetAfter == null) continue;
 
             ArrayList<LinkedList<Puzzle>> tailSolutions = new ArrayList<LinkedList<Puzzle>>();
-            solve(boardAfter, tailSolutions, count);
+            solve(sheetAfter, tailSolutions, count);
 
             for (LinkedList<Puzzle> solution : tailSolutions)
             {
@@ -173,7 +173,7 @@ public class Cracker
         }
     }
 
-    static void printBoard(Board b)
+    static void printsheet(sheet b)
     {
         System.out.print("(" + b.pegCount + ", [");
         for (int i = 0; i < b.cells.length; i++)
@@ -181,7 +181,7 @@ public class Cracker
         System.out.println();
     }
 
-    static void show(Board b)
+    static void show(sheet b)
     {
         int[][] lines = { {4,0,0}, {3,1,2}, {2,3,5}, {1,6,9}, {0,10,14} };
         for (int[] l : lines)
@@ -204,10 +204,10 @@ public class Cracker
         System.out.println();
     }
 
-    static void replay(List<Puzzle> Puzzles, Board b)
+    static void replay(List<Puzzle> PegPuzzle, sheet b)
     {
         show(b);
-        for (Puzzle m : Puzzles)
+        for (Puzzle m : PegPuzzle)
         {
             b = b.Puzzle(m);
             show(b);
@@ -218,15 +218,15 @@ public class Cracker
     {
         for (int i = 0; i < 15; i++)
         {
-            Board b = new Board(i);
-            printBoard(b);
-            List<Puzzle> Puzzles = firstSolution(b);
-            for (Puzzle m : Puzzles) 
+            sheet b = new sheet(i);
+            printsheet(b);
+            List<Puzzle> PegPuzzle = firstSolution(b);
+            for (Puzzle m : PegPuzzle) 
             {
                 System.out.println(m);
                 b = b.Puzzle(m);
             }
-            printBoard(b);
+            printsheet(b);
             System.out.println();
         }
     }
@@ -236,7 +236,7 @@ public class Cracker
         for (int i = 0; i < 5; i++)
         {
             System.out.println("=== " + i + " ===");
-            Board b = new Board(i);
+            sheet b = new sheet(i);
             replay(firstSolution(b), b);
             System.out.println();
         }
@@ -247,9 +247,6 @@ public class Cracker
         go();
         terse();
 
-        // This is how you can get all solutions for a particular board.
-
-        //List<LinkedList<Puzzle>> sols = solve(new Board(0));
-        //System.out.println(sols.size());
+       
     }
 }
